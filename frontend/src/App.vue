@@ -3,13 +3,9 @@
 </template>
 
 <script lang="ts" setup>
-import { defineComponent } from 'vue';
-
-export default defineComponent({
-  name: 'App',
-});
+  // Não é necessário exportar nada aqui
 </script>
 
 <style>
-/* Add global styles here */
+/* Adicione estilos globais aqui, se necessário */
 </style>

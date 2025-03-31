@@ -1,28 +1,34 @@
 import express from 'express';
+import bcrypt from 'bcrypt';
 import { User } from '../models';
+import { ValidationError } from 'sequelize';
+
 class IndexController {
     public getIndex(req: express.Request, res: express.Response): void {
         res.send('Hello from the Index Controller!');
     }
-}
 
-const router = express.Router();
+    public async createUser(req: express.Request, res: express.Response): Promise<void> {
+        try {
+            const { username, email, password } = req.body;
 
-router.post('/users', async (req, res) => {
-    try {
-        const { username, email, password } = req.body;
+            // Hash da senha antes de salvar no banco de dados
+            const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Criar o usuário
-        await User.create({ username, email, password });
+            const newUser = await User.create({ username, email, password: hashedPassword });
 
-        // Buscar o registro recém-criado com base no email (ou outro campo único)
-        const createdUser = await User.findOne({ where: { email } });
+            res.status(201).json(newUser);
+        } catch (error) {
+            if (error instanceof ValidationError) {
+                const messages = error.errors.map((err) => err.message);
+                res.status(400).json({ error: messages });
+                return;
+            }
 
-        res.status(201).json(createdUser);
-    } catch (error) {
-        console.error('Error creating user:', error);
-        res.status(500).json({ error: 'Failed to create user' });
+            console.error('Error creating user:', error);
+            res.status(500).json({ error: 'Failed to create user' });
+        }
     }
-});
+}
 
 export default IndexController;
